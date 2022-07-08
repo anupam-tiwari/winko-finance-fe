@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from "react";
-import ConnectWallet from "../components/ConnectWallet";
 import Navbar from "../components/Navbar";
 import { collection, getDocs, where, query, doc } from "firebase/firestore";
 import { auth } from "../firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { db } from "../firebase";
-import { updateDoc } from "firebase/firestore";
 import { ethers } from "ethers";
 import winkoTokenAbi from "../contract/winkoTokenABI.json";
 import axios from "axios";
 import requests from "../Request";
 import { FaUser } from "react-icons/fa";
 import { BiRefresh } from "react-icons/bi";
-import { GoPrimitiveDot } from "react-icons/go";
 
 const Profile = () => {
   const [connectedwalletAddress, SetWalletAddress] = useState("");
@@ -20,123 +17,63 @@ const Profile = () => {
   const [mnemonic, SetMnemonic] = useState("");
   const [errormsg, setError] = useState("");
   const [user, loading, error] = useAuthState(auth);
-  const [userData, setUserData] = useState([]);
   const [balance, setBalance] = useState(null);
   const [balanceETH, setEthBalance] = useState(null);
   const [currentAddress, setcurrentAddress] = useState("");
-
-  const [provider, setProvider] = useState(null);
-  const [signer, setSigner] = useState(null);
   const [contract, setContract] = useState(null);
   const [tokenName, setTokenName] = useState("Token");
   const [refresh, setRefresh] = useState(true);
-  const [buttonstate, setState] = useState("Connect");
-
-  const userCollectionRef = collection(db, "users");
   const contractAddress = "0x329BEEeD3277d359857b710244719055bA5b0455";
-  const RPCprovider = new ethers.providers.AlchemyProvider("maticmum");
+  const url = 'https://liberty10.shardeum.org/';
+  const RPCprovider = new ethers.providers.JsonRpcProvider(url);
+  //const RPCprovider = new ethers.providers.AlchemyProvider("maticmum");
 
   {
     user && Getprofile();
   }
 
-  // const ConnectWallet = async () => {
-  //   if (window.ethereum && window.ethereum.isMetaMask) {
-  //     await window.ethereum
-  //       .request({ method: "eth_requestAccounts" })
-  //       .then((result) => {
-  //         accountChangeHandler(result[0]);
-  //         updateEthers();
-
-  //       })
-  //       .catch((error) => {
-  //         console.log(error);
-  //       });
-  //   } else {
-  //     console.log("need to install metamask");
-  //   }
-  // };
-
-  // const accountChangeHandler = (address) => {
-  //   SetWalletAddress(address);
-  //   getAccountBalance(address.toString());
-  // };
-
-  // const getAccountBalance = (account) => {
-  //   window.ethereum
-  //     .request({ method: "eth_getBalance", params: [account, "latest"] })
-  //     .then((balance) => {
-  //       setEthBalance(ethers.utils.formatEther(balance));
-  //     })
-  //     .catch((error) => {
-  //       //setErrorMessage(error.message);
-  //     });
-  // };
-
-  // window.ethereum.on("accountsChanged", accountChangeHandler);
-
-  // const updateAddress= () => {
-  //   ReplaceUserAddress(user.email, connectedwalletAddress);
-  // }
-
-  // async function ReplaceUserAddress(email, newWalletAddress) {
-  //   try{const user = {
-  //     id: email,
-  //     wallet: newWalletAddress,
-  //   };
-  //   await axios.put(requests.addWallet, user).then((response) => {
-  //     console.log(response);
-  //   });}
-  //   catch{
-  //     console.log("error")
-  //   }
-  // }
-
   useEffect(() => {
-    if (user != null) {
+    if (user) {
+      console.log("refresh")
       Getprofile();
-    }
-
-    if (contract != null) {
-      updateBalance();
-      updateTokenName();
     }
   }, [refresh]);
 
   async function Getprofile() {
     if (user) {
       await axios.get(requests.getUser + user.email).then((response) => {
+        let wallet = new ethers.Wallet(response.data.privatekey);
+        let walletSigner = wallet.connect(RPCprovider);
+        let tempContract = new ethers.Contract(
+          contractAddress,
+          winkoTokenAbi,
+          walletSigner
+        );
+        setContract(tempContract);
         setcurrentAddress(response.data.wallet);
         SetPrivateAddress(response.data.privatekey);
         SetMnemonic(response.data.mnemonic);
+        updateBalance(tempContract);
       });
-
-      let wallet = new ethers.Wallet(privateAddress);
-      let walletSigner = wallet.connect(RPCprovider);
-      let tempContract = new ethers.Contract(
-        contractAddress,
-        winkoTokenAbi,
-        walletSigner
-      );
-
-      setContract(tempContract)
     }
   }
 
-  const updateBalance = async () => {
-    let balanceBig = await contract.balanceOf(currentAddress);
-    let balanceNumber = balanceBig.toNumber();
+  async function updateBalance(contract) {
+    try {
+      if (currentAddress) {
+        let balanceBig = await contract.balanceOf(currentAddress);
+        let balanceNumber = balanceBig.toNumber();
+        let decimals = await contract.decimals();
+        let tokenBalance = balanceNumber / Math.pow(10, decimals);
+        
 
-    let decimals = await contract.decimals();
-
-    let tokenBalance = balanceNumber / Math.pow(10, decimals);
-
-    setBalance(tokenBalance);
-  };
-
-  const updateTokenName = async () => {
-    setTokenName(await contract.name());
-  };
+        setBalance(tokenBalance);
+        setTokenName(await contract.name());
+      }
+    } catch(error){
+      console.error(error)
+    }
+  }
 
   function refresher() {
     if (refresh == true) {
@@ -163,22 +100,9 @@ const Profile = () => {
             <div className="p-2">Crypto Address: {currentAddress}</div>
             <div className="p-2">Private Key: {privateAddress}</div>
             <div className="p-2">Mnemonic: {mnemonic}</div>
-
-            {connectedwalletAddress && (
-              <div className=" flex p-2 items-center">
-                Connected Address: {connectedwalletAddress}
-                <div className="text-green-500">
-                  <GoPrimitiveDot className="p"></GoPrimitiveDot>
-                </div>
-              </div>
-            )}
             {/* <div className="p-2">balance: {balanceETH} Eth</div> */}
             <div className="p-2">
               balance: {balance} {tokenName}
-            </div>
-
-            <div className={style.confirmButton} onClick={ConnectWallet}>
-              {buttonstate}
             </div>
 
             {/* <div className={style.confirmButton} onClick={updateAddress}>

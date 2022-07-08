@@ -8,24 +8,26 @@ import axios from "axios";
 import { useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../firebase";
-import {BsFillArrowDownCircleFill} from "react-icons/bs"
-import loadingGIF from "../assets/loading.gif"
+import { BsFillArrowDownCircleFill } from "react-icons/bs";
+import loadingGIF from "../assets/loading.gif";
 
 const TransferBox = () => {
-
   const contractAddress = "0x329BEEeD3277d359857b710244719055bA5b0455";
   const [transferHash, setTransferHash] = useState(null);
   const [transferAmount, setTransferAmount] = useState("");
   const [recieverAddress, setRecieverAddress] = useState("");
-  const [provider, setProvider] = useState(null);
-  const [signer, setSigner] = useState(null);
   const [contract, setContract] = useState(null);
   const [recieverEmail, SetEmail] = useState("");
   const [resultMessage, setMessage] = useState("");
   const [user, loading, error] = useAuthState(auth);
   const [privateKey, setPrivateKey] = useState("");
-  const RPCprovider = new ethers.providers.AlchemyProvider("maticmum");
-  const [txsuccess, setTxSucess] = useState("")
+  const url = 'https://liberty10.shardeum.org/';
+  const RPCprovider = new ethers.providers.JsonRpcProvider(url);
+  //const RPCprovider = new ethers.providers.AlchemyProvider("maticmum");
+  const [txsuccess, setTxSucess] = useState("");
+  const [txStatus, setTxStatus] = useState('')
+  const [buttonState, SetButtonState] = useState(false)
+
   useEffect(() => {
     FindWalletAddress(recieverEmail);
   }, [recieverEmail]);
@@ -36,18 +38,9 @@ const TransferBox = () => {
     }
   }, [user]);
 
-  // useEffect(() => {
-  //   if(txsuccess == true){
-
-  //   }
-  //   else if(txsuccess == false){
-
-  //   }
-  //   else if(txsuccess == null){
-
-  //   }
-
-  // }, [txsuccess])
+  useEffect(() => {
+    checkStatus()
+  }, [transferHash])
 
   const GetUser = async (email) => {
     try {
@@ -74,6 +67,7 @@ const TransferBox = () => {
   };
 
   const transferHandler = async () => {
+    SetButtonState(true)
     try {
       let wallet = new ethers.Wallet(privateKey);
       let walletSigner = wallet.connect(RPCprovider);
@@ -83,83 +77,103 @@ const TransferBox = () => {
         walletSigner
       );
       setContract(tempContract);
-
-      const tx = await contract.transfer(recieverAddress, transferAmount)
+      const tx = await tempContract
+        .transfer(recieverAddress, transferAmount)
         .then((transferResult) => {
           console.log(transferResult);
-          setTransferHash(transferResult.hash)
-        });  
-    } catch {}
+          setTransferHash(transferResult.hash);
+          setTxStatus("Tx Processing...")
+        });
+    } catch(error){
+      SetButtonState(false)
+      console.error(error)
+    }
   };
 
-  // useEffect(() =>{
-
-  // })
-
-    RPCprovider.getTransactionReceipt(transferHash).then((result) => {
-      if(result){
-        console.log(result)
-        setTxSucess(true)
+  function checkStatus(){
+    if(transferHash){
+      if(txStatus == "Tx Confirmed"){
+        return
+      }else{
+        setInterval(() => {
+          CheckTxStatus()
+        }, 5000);
       }
-    }).catch(
-      console.log("not yet cofirmed")
-    )
+    }
+  }
+
+  function CheckTxStatus(){
+    RPCprovider.getTransactionReceipt(transferHash)
+    .then((result) => {
+      if (result) {
+        setTxSucess(true);
+        setTxStatus("Tx Confirmed")
+        SetButtonState(false)
+      }
+    })
+    .catch(console.log("not yet cofirmed"));
+  }
+
+ 
 
   return (
-    user &&
-    <div className={style.wrapper}>
-      <div className={style.content}>
-        <div className={style.formHeader}>
-          <div>Transfer</div>
-          <div>
-            <RiSettings3Fill />
+    user && (
+      <div className={style.wrapper}>
+        <div className={style.content}>
+          <div className={style.formHeader}>
+            <div>Transfer</div>
+            <div>
+              <RiSettings3Fill />
+            </div>
           </div>
+          <div className={style.transferPropContainer}>
+            <div className={style.transferPropInput}>From: {user.email}</div>
+          </div>
+          <div className="justify-center flex p-2 text-2xl">
+            <BsFillArrowDownCircleFill></BsFillArrowDownCircleFill>
+          </div>
+          <div className={style.transferPropContainer}>
+            <div className="pr-2">To:</div>
+            <input
+              type="text"
+              className={style.transferPropInput}
+              placeholder="Email"
+              onChange={(e) => SetEmail(e.target.value)}
+            />
+          </div>
+          <div className={style.transferPropContainer}>
+            <div className="pr-2">Amount:</div>
+            <input
+              type="text"
+              className={style.transferPropInput}
+              placeholder="0.0"
+              pattern="^[0-9]*[.,]?[0-9]*$"
+              onChange={(e) => setTransferAmount(e.target.value)}
+            />
+          </div>
+          <div>{resultMessage}</div>
+          <div>
+            <a
+              href={`https://mumbai.polygonscan.com/tx/${transferHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {transferHash}
+            </a>
+          </div>
+          {/* onClick={e => handleSubmit(e)} */}
+          <button onClick={transferHandler} disabled={buttonState} className={style.confirmButton}>
+            {!buttonState && <div>Confirm</div>}
+            {buttonState && <div><img src={loadingGIF} alt="" /></div>} 
+          </button>
+          <div>{txStatus}</div>
         </div>
 
-        <div className={style.transferPropContainer}>
-          <div
-            className={style.transferPropInput}
-          >From: {user.email}</div>
-        </div>
-
-        <div className="justify-center flex p-2 text-2xl"><BsFillArrowDownCircleFill></BsFillArrowDownCircleFill></div>
-        <div className={style.transferPropContainer}>
-          <div className="pr-2">To:</div>
-          <input
-            type="text"
-            className={style.transferPropInput}
-            placeholder="Email"
-            onChange={(e) => SetEmail(e.target.value)}
-          />
-        </div>
-        <div className={style.transferPropContainer}>
-        <div className="pr-2">Amount:</div>
-          <input
-            type="text"
-            className={style.transferPropInput}
-            placeholder="0.0"
-            pattern="^[0-9]*[.,]?[0-9]*$"
-            onChange={(e) => setTransferAmount(e.target.value)}
-          />
-        </div>
-        <div>{resultMessage}</div>
-        <div><a href={`https://mumbai.polygonscan.com/tx/${transferHash}`} target="_blank" rel="noopener noreferrer">{transferHash}</a></div>
-        {/* onClick={e => handleSubmit(e)} */}
-        <div onClick={transferHandler} className={style.confirmButton}>
-          {txsuccess && <div>Confirm</div>}
-          {txsuccess == false && <div><img src={loadingGIF} alt="" /></div>}
-        </div>
-
-        <div className={style.confirmButton}>
-          find status
-          <h1>{}</h1>
-        </div>
-      </div>
-
-      {/* <Modal isOpen={!!router.query.loading} style={customStyles}>
+        {/* <Modal isOpen={!!router.query.loading} style={customStyles}>
         <TransactionLoader />
       </Modal> */}
-    </div>
+      </div>
+    )
   );
 };
 
@@ -174,7 +188,7 @@ const style = {
   currencySelectorIcon: `flex items-center`,
   currencySelectorTicker: `mx-2`,
   currencySelectorArrow: `text-lg`,
-  confirmButton: `bg-[#2172E5] my-2 rounded-2xl py-6 px-8 text-xl font-semibold flex items-center justify-center cursor-pointer border border-[#2172E5] hover:border-[#234169]`,
+  confirmButton: `bg-[#2172E5] my-2 rounded-2xl py-6 px-8 text-xl w-full font-semibold flex items-center justify-center cursor-pointer border border-[#2172E5] hover:border-[#234169]`,
 };
 
 export default TransferBox;
