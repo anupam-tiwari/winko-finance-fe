@@ -86,7 +86,7 @@ const Profile = () => {
       <Navbar></Navbar>
       <div className="w-screen flex items-center justify-center mt-14">
         {user && (
-          <div className="bg-[#191B1F] w-[40rem] rounded-2xl p-4">
+          <div className="bg-[#191B1F] w-[20rem] rounded-2xl p-4 sm:w-[20rem] lg:w-[40rem] md:w-[30rem]">
             <div
               className="flex justify-end cursor-pointer"
               onClick={refresher}
