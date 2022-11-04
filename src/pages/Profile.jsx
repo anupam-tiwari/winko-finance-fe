@@ -28,9 +28,9 @@ const Profile = () => {
   const RPCprovider = new ethers.providers.JsonRpcProvider(url);
   //const RPCprovider = new ethers.providers.AlchemyProvider("maticmum");
 
-  {
-    user && Getprofile();
-  }
+  // {
+  //   user && Getprofile();
+  // }
 
   useEffect(() => {
     if (user) {
@@ -38,6 +38,8 @@ const Profile = () => {
       Getprofile();
     }
   }, [refresh]);
+
+  //anupam@winko.com
 
   async function Getprofile() {
     if (user) {
