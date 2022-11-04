@@ -45,7 +45,7 @@ const Navbar = () => {
   return (
     <div className="flex justify-between p-4 items-center">
       <div className="cursor-pointer flex justify-center" onClick={() => navigate("/")}>
-        <h1 className="text-black font-bold text-3xl">Winko</h1>
+        <h1 className="text-black font-bold text-3xl">Franga</h1>
       </div>
 
       {user && (
@@ -54,9 +54,9 @@ const Navbar = () => {
             <div className="flex p-2 cursor-pointer">
               <div onClick={() => navigate("/transfer")}>Transfer</div>
             </div>
-            <div className="flex p-2 cursor-pointer">
+            {/* <div className="flex p-2 cursor-pointer">
               <div onClick={() => navigate("/transactions")}>Transactions</div>
-            </div>
+            </div> */}
             <div className="flex p-2 cursor-pointer">
               <div onClick={() => navigate("/profile")}>Profile</div>
             </div>
