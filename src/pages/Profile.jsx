@@ -24,9 +24,9 @@ const Profile = () => {
   const [tokenName, setTokenName] = useState("Token");
   const [refresh, setRefresh] = useState(true);
   const contractAddress = "0x329BEEeD3277d359857b710244719055bA5b0455";
-  const url = 'https://liberty10.shardeum.org/';
-  const RPCprovider = new ethers.providers.JsonRpcProvider(url);
-  //const RPCprovider = new ethers.providers.AlchemyProvider("maticmum");
+  //const url = 'https://liberty10.shardeum.org/';
+  //const RPCprovider = new ethers.providers.JsonRpcProvider(url);
+  const RPCprovider = new ethers.providers.AlchemyProvider("maticmum", "N6b7WI-JBH-BzAFg5vVIJ2LionRy6Bkv");
 
   // {
   //   user && Getprofile();

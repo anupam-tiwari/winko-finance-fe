@@ -53,13 +53,15 @@ const Login = () => {
           Login
         </div>
         {/* </form> */}
-
+{/* 
         <div className={style.confirmButton} onClick={signInWithGoogle}>
           <div className={style.currencySelectorIcon}>
-            {/* <BsGoogle></BsGoogle>{" Sign iN "} */}
+       <BsGoogle></BsGoogle>{" Sign iN "} 
             Login using Google
           </div>
-        </div>
+        </div>  */}
+
+
         <div>
           <div className="cursor-pointer" onClick={() => navigate("/reset")}>
             Forgot Password?

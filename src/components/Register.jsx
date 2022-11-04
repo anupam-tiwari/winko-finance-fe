@@ -36,20 +36,21 @@ function Register() {
 
       const wallet = ethers.Wallet.createRandom()
 
-      const user = {
-        email: email,
-        wallet: wallet.address, 
-        mnemonic: wallet.mnemonic.phrase, 
-        privatekey: wallet.privateKey
-      };
+      if(wallet){
+        const user = {
+          email: email,
+          wallet: wallet.address, 
+          mnemonic: wallet.mnemonic.phrase, 
+          privatekey: wallet.privateKey
+        };
 
+        await axios.post(requests.registerUser, user).then((response) => {
+          setMessage("Account created")
+        });
+  
+        setSuccess(true)
+      }
       console.log(user)
-
-      await axios.post(requests.registerUser, user).then((response) => {
-        setMessage("Account created")
-      });
-
-      setSuccess(true)
     } catch {
       setMessage("Account exists ")
       setSuccess(false)
@@ -58,6 +59,7 @@ function Register() {
 
   function withGoogle(){
     signInWithGoogle()
+
     setSuccess(true)
   }
 
@@ -90,9 +92,9 @@ function Register() {
           Register
         </div>
 
-        <div className={style.confirmButton} onClick={withGoogle}>
+        {/* <div className={style.confirmButton} onClick={withGoogle}>
           Register with Google
-        </div>
+        </div> */}
 
         <div className="flex justify-center">{message}</div>
 

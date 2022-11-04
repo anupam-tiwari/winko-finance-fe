@@ -21,9 +21,9 @@ const TransferBox = () => {
   const [resultMessage, setMessage] = useState("");
   const [user, loading, error] = useAuthState(auth);
   const [privateKey, setPrivateKey] = useState("");
-  const url = 'https://liberty10.shardeum.org/';
-  const RPCprovider = new ethers.providers.JsonRpcProvider(url);
-  //const RPCprovider = new ethers.providers.AlchemyProvider("maticmum");
+  //const url = 'https://liberty10.shardeum.org/';
+  //const RPCprovider = new ethers.providers.JsonRpcProvider(url);
+  const RPCprovider = new ethers.providers.AlchemyProvider("maticmum", "N6b7WI-JBH-BzAFg5vVIJ2LionRy6Bkv");
   const [txsuccess, setTxSucess] = useState("");
   const [txStatus, setTxStatus] = useState('')
   const [buttonState, SetButtonState] = useState(false)

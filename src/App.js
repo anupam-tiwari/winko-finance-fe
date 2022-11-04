@@ -11,7 +11,7 @@ import Profile from './pages/Profile';
 const style = {
   wrapper: `h-screen max-h-screen h-min-screen w-screen bg-[#ffffff] text-white select-none flex flex-col justify-top`,
 }
-
+//app start
 function App() {
   return (
     <div className={style.wrapper}>
